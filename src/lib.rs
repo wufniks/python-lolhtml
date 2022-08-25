@@ -13,7 +13,7 @@ use lol_html::Selector;
 use pyo3::create_exception;
 use pyo3::exceptions::{PyException, PyRuntimeError, PyTypeError};
 use pyo3::prelude::*;
-use pyo3::types::PyTuple;
+use pyo3::types::{PyList, PyTuple};
 
 create_exception!(module, RewritingError, PyException);
 
@@ -23,15 +23,12 @@ create_exception!(module, RewritingError, PyException);
 fn rewrite_str(
     py: Python<'_>,
     html: &str,
-    element_content_handler: &PyElementContentHandler,
-    // element_content_handlers: &ElementContentHandlers,
-    // element_content_handlers: Vec<(String, &ElementContentHandlers)>,
+    element_content_handlers: Vec<PyRefMut<'_, PyElementContentHandler>>,
 ) -> PyResult<String> {
-    // let element_content_handlers: Vec<_> = element_content_handlers
-    //     .into_iter()
-    //     .map(|(selector, handler)| (Cow::Owned(selector.parse().unwrap()), *handler.0))
-    //     .collect();
-    let element_content_handlers = vec![element_content_handler.as_element_content_handlers()];
+    let element_content_handlers = element_content_handlers
+        .into_iter()
+        .map(|handler| handler.as_element_content_handlers())
+        .collect();
     lol_html::rewrite_str(
         html,
         lol_html::RewriteStrSettings {
@@ -96,14 +93,16 @@ impl PyElementContentHandler {
 }
 
 impl PyElementContentHandler {
-    pub fn as_element_content_handlers(&self) -> (Cow<'_, Selector>, ElementContentHandlers) {
+    pub fn as_element_content_handlers<'h>(
+        &self,
+    ) -> (Cow<'h, Selector>, ElementContentHandlers<'h>) {
         let mut handlers = ElementContentHandlers::default();
 
-        if let Some(handler) = self.element.as_ref() {
+        if let Some(handler) = self.element.clone() {
             handlers = handlers.element(move |elem: &mut _| {
                 let elem: &'static mut Element = unsafe { std::mem::transmute(elem) };
                 Python::with_gil(|py| {
-                    let result = handler
+                    let _result = handler
                         .call(py, (PyElement::new(elem),), None)
                         .map_err(|_e| PyRuntimeError::new_err("failed to invoke callback"))?;
                     Ok(())
