@@ -70,3 +70,6 @@ docs/_build/
 
 # Pyenv
 .python-version
+
+# asdf
+.tool-versions
