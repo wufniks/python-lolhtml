@@ -2,18 +2,15 @@ mod element;
 
 use std::borrow::Cow;
 use std::rc::Rc;
-use std::str::FromStr;
 use std::sync::Arc;
 
 use element::PyElement;
 use lol_html::html_content::Element;
 use lol_html::ElementContentHandlers;
 use lol_html::Selector;
-// use lol_html::RewriteStrSettings;
 use pyo3::create_exception;
-use pyo3::exceptions::{PyException, PyRuntimeError, PyTypeError};
+use pyo3::exceptions::{PyException, PyRuntimeError};
 use pyo3::prelude::*;
-use pyo3::types::{PyList, PyTuple};
 
 create_exception!(module, RewritingError, PyException);
 
@@ -21,7 +18,7 @@ create_exception!(module, RewritingError, PyException);
 // #[pyfunction(element_content_handlers = "Vec::new()")]
 #[pyfunction]
 fn rewrite_str(
-    py: Python<'_>,
+    _py: Python<'_>,
     html: &str,
     element_content_handlers: Vec<PyRefMut<'_, PyElementContentHandler>>,
 ) -> PyResult<String> {
@@ -36,7 +33,7 @@ fn rewrite_str(
             ..Default::default()
         },
     )
-    .map_err(|_e| PyTypeError::new_err("Error message"))
+    .map_err(|e| PyRuntimeError::new_err(e.to_string()))
 }
 
 // /// Rewrites given html string with the provided settings.
@@ -104,7 +101,9 @@ impl PyElementContentHandler {
                 Python::with_gil(|py| {
                     let _result = handler
                         .call(py, (PyElement::new(elem),), None)
-                        .map_err(|_e| PyRuntimeError::new_err("failed to invoke callback"))?;
+                        .map_err(|e| {
+                            PyRuntimeError::new_err(format!("failed to invoke callback: {e}"))
+                        })?;
                     Ok(())
                 })
             })
