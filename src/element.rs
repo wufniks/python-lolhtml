@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use lol_html::html_content::Element;
 use pyo3::prelude::*;
 
@@ -19,10 +17,38 @@ impl PyElement {
 
 #[pymethods]
 impl PyElement {
+    fn tag_name(&self) -> PyResult<String> {
+        todo!()
+    }
+
+    fn set_tag_name(&mut self, name: &str) -> PyResult<()> {
+        todo!()
+    }
+
+    fn namespace_uri(&self) -> &'static str {
+        todo!()
+    }
+
+    // fn attributes(&self) -> PyList<PyAttribute> {
+    //     todo!()
+    // }
+
+    fn get_attribute(&self, name: &str) -> Option<String> {
+        todo!()
+    }
+
+    fn has_attribute(&self, name: &str) -> bool {
+        todo!()
+    }
+
     fn set_attribute(&mut self, name: &str, value: &str) -> PyResult<()> {
         Ok(self
             .0
             .set_attribute(name, value)
             .map_err(|_e| pyo3::exceptions::PyRuntimeError::new_err("something went wrong"))?)
+    }
+
+    fn remove_attribute(&mut self, name: &str) {
+        todo!()
     }
 }
