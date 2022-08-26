@@ -3,6 +3,7 @@ use pyo3::prelude::*;
 
 pub(crate) fn register(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyElement>()?;
+    m.add_class::<ContentType>()?;
     Ok(())
 }
 
