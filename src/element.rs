@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use lol_html::html_content::Element;
 use pyo3::prelude::*;
 
@@ -106,7 +104,7 @@ impl PyElement {
         self.0.removed()
     }
 
-    fn on_end_tag(&mut self, handler: Option<PyObject>) -> PyResult<()> {
+    fn on_end_tag(&mut self, _handler: Option<PyObject>) -> PyResult<()> {
         todo!()
     }
 }

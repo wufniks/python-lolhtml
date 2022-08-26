@@ -1,4 +1,5 @@
-from lolhtml import *
+from lolhtml import rewrite_str, ElementContentHandler
+
 
 def test_http_to_https():
     def modify_scheme(elem):
@@ -10,9 +11,11 @@ def test_http_to_https():
     )
     assert result == r'<div><a href="https://example.com"></a></div>'
 
+
 def test_lambda():
     result = rewrite_str(
         r'<div><a href="http://example.com"></a></div>',
-        [ElementContentHandler("a", lambda elem: elem.set_attribute("class", "test"))],
+        [ElementContentHandler(
+            "a", lambda elem: elem.set_attribute("class", "test"))],
     )
     assert result == r'<div><a href="http://example.com" class="test"></a></div>'

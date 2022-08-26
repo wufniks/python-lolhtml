@@ -15,7 +15,6 @@ use pyo3::prelude::*;
 create_exception!(module, RewritingError, PyException);
 
 /// Rewrites given html string with the provided settings.
-// #[pyfunction(element_content_handlers = "Vec::new()")]
 #[pyfunction]
 fn rewrite_str(
     _py: Python<'_>,
