@@ -20,6 +20,14 @@ impl Clone for ContentType {
     }
 }
 
+#[pyclass]
+pub(crate) struct Attribute {
+    #[pyo3(get)]
+    name: String,
+    #[pyo3(get)]
+    value: String,
+}
+
 #[pyclass(unsendable, name = "Element")]
 pub(crate) struct PyElement(&'static mut Element<'static, 'static>);
 
@@ -46,9 +54,16 @@ impl PyElement {
         self.0.namespace_uri()
     }
 
-    // fn attributes(&self) -> PyList<PyAttribute> {
-    //     todo!()
-    // }
+    fn attributes(&self) -> Vec<Attribute> {
+        self.0
+            .attributes()
+            .iter()
+            .map(|attr| Attribute {
+                name: attr.name(),
+                value: attr.value(),
+            })
+            .collect()
+    }
 
     fn get_attribute(&self, name: &str) -> Option<String> {
         self.0.get_attribute(name)
