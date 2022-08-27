@@ -1,11 +1,15 @@
 use lol_html::html_content::Element;
+use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 
-pub(crate) fn register(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
+pub(crate) fn register(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyElement>()?;
     m.add_class::<ContentType>()?;
+    m.add("TagNameError", py.get_type::<PyTagNameError>())?;
     Ok(())
 }
+
+pyo3::create_exception!(module, PyTagNameError, PyException);
 
 #[pyclass]
 pub(crate) struct ContentType(lol_html::html_content::ContentType);
@@ -47,7 +51,7 @@ impl PyElement {
         Ok(self
             .0
             .set_tag_name(name)
-            .map_err(|_e| pyo3::exceptions::PyRuntimeError::new_err("something went wrong"))?)
+            .map_err(|e| PyTagNameError::new_err(e.to_string()))?)
     }
 
     fn namespace_uri(&self) -> &'static str {

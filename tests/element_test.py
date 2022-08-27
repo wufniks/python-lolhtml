@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from lolhtml import ContentType, rewrite_str, ElementContentHandler
+from lolhtml import ContentType, rewrite_str, ElementContentHandler, TagNameError
 import pytest
 
 
@@ -26,7 +26,7 @@ def rewrite_element(html: str, selector: str, handler) -> str:
 
 def test_empty_tag_name():
     def handler(el):
-        with pytest.raises(RuntimeError):
+        with pytest.raises(TagNameError):
             err = el.set_tag_name("")
 
     rewrite_element(r"<div>", "div", handler)

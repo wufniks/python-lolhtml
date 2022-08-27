@@ -17,7 +17,7 @@ create_exception!(module, RewritingError, PyException);
 /// Rewrites given html string with the provided settings.
 #[pyfunction]
 fn rewrite_str(
-    _py: Python<'_>,
+    py: Python<'_>,
     html: &str,
     element_content_handlers: Vec<PyRefMut<'_, PyElementContentHandler>>,
 ) -> PyResult<String> {
@@ -32,7 +32,17 @@ fn rewrite_str(
             ..Default::default()
         },
     )
-    .map_err(|e| PyRuntimeError::new_err(e.to_string()))
+    .map_err(|e| {
+        if let lol_html::errors::RewritingError::ContentHandlerError(mut inner) = e {
+            if let Some(pyerr) = inner.downcast_mut::<PyErr>() {
+                return pyerr.clone_ref(py);
+            } else {
+                PyRuntimeError::new_err(inner.to_string())
+            }
+        } else {
+            PyRuntimeError::new_err(e.to_string())
+        }
+    })
 }
 
 // /// Rewrites given html string with the provided settings.
@@ -98,11 +108,7 @@ impl PyElementContentHandler {
             handlers = handlers.element(move |elem: &mut _| {
                 let elem: &'static mut Element = unsafe { std::mem::transmute(elem) };
                 Python::with_gil(|py| {
-                    let _result = handler
-                        .call(py, (PyElement::new(elem),), None)
-                        .map_err(|e| {
-                            PyRuntimeError::new_err(format!("failed to invoke callback: {e}"))
-                        })?;
+                    let _result = handler.call(py, (PyElement::new(elem),), None)?;
                     Ok(())
                 })
             })
