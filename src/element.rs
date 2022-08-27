@@ -1,10 +1,10 @@
-use lol_html::html_content::Element;
+use lol_html::html_content::{ContentType, Element};
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 
 pub(crate) fn register(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyElement>()?;
-    m.add_class::<ContentType>()?;
+    m.add_class::<PyContentType>()?;
     m.add("TagNameError", py.get_type::<PyTagNameError>())?;
     Ok(())
 }
@@ -12,15 +12,20 @@ pub(crate) fn register(py: Python<'_>, m: &PyModule) -> PyResult<()> {
 pyo3::create_exception!(module, PyTagNameError, PyException);
 
 #[pyclass]
-pub(crate) struct ContentType(lol_html::html_content::ContentType);
+pub(crate) struct PyContentType(ContentType);
 
-impl Clone for ContentType {
+impl Clone for PyContentType {
     fn clone(&self) -> Self {
-        use lol_html::html_content::ContentType;
         match self.0 {
             ContentType::Html => Self(ContentType::Html),
             ContentType::Text => Self(ContentType::Text),
         }
+    }
+}
+
+impl From<PyContentType> for lol_html::html_content::ContentType {
+    fn from(this: PyContentType) -> Self {
+        this.0
     }
 }
 
@@ -88,27 +93,27 @@ impl PyElement {
         self.0.remove_attribute(name)
     }
 
-    fn before(&mut self, content: &str, content_type: ContentType) {
+    fn before(&mut self, content: &str, content_type: PyContentType) {
         self.0.before(content, content_type.0)
     }
 
-    fn after(&mut self, content: &str, content_type: ContentType) {
+    fn after(&mut self, content: &str, content_type: PyContentType) {
         self.0.after(content, content_type.0)
     }
 
-    fn prepend(&mut self, content: &str, content_type: ContentType) {
+    fn prepend(&mut self, content: &str, content_type: PyContentType) {
         self.0.prepend(content, content_type.0)
     }
 
-    fn append(&mut self, content: &str, content_type: ContentType) {
+    fn append(&mut self, content: &str, content_type: PyContentType) {
         self.0.append(content, content_type.0)
     }
 
-    fn set_inner_content(&mut self, content: &str, content_type: ContentType) {
+    fn set_inner_content(&mut self, content: &str, content_type: PyContentType) {
         self.0.set_inner_content(content, content_type.0)
     }
 
-    fn replace(&mut self, content: &str, content_type: ContentType) {
+    fn replace(&mut self, content: &str, content_type: PyContentType) {
         self.0.replace(content, content_type.0)
     }
 

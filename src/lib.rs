@@ -1,4 +1,5 @@
 mod element;
+mod end_tag;
 
 use std::borrow::Cow;
 use std::rc::Rc;
@@ -130,5 +131,6 @@ fn lolhtml(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyElementContentHandler>()?;
     m.add("RewritingError", py.get_type::<RewritingError>())?;
     element::register(py, m)?;
+    end_tag::register(py, m)?;
     Ok(())
 }
