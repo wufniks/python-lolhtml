@@ -1,31 +1,33 @@
-use lol_html::html_content::{ContentType, Element};
+use lol_html::html_content::{ContentType, Element, EndTag};
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
+
+use crate::tokens::end_tag::PyEndTag;
 
 pub(crate) fn register(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyElement>()?;
     m.add_class::<PyContentType>()?;
     m.add("TagNameError", py.get_type::<PyTagNameError>())?;
+    m.add("EndTagError", py.get_type::<PyEndTagError>())?;
     Ok(())
 }
 
 pyo3::create_exception!(module, PyTagNameError, PyException);
+pyo3::create_exception!(module, PyEndTagError, PyException);
 
-#[pyclass]
-pub(crate) struct PyContentType(ContentType);
-
-impl Clone for PyContentType {
-    fn clone(&self) -> Self {
-        match self.0 {
-            ContentType::Html => Self(ContentType::Html),
-            ContentType::Text => Self(ContentType::Text),
-        }
-    }
+#[derive(Debug, Clone, Copy)]
+#[pyclass(name = "ContentType")]
+pub(crate) enum PyContentType {
+    Text,
+    Html,
 }
 
-impl From<PyContentType> for lol_html::html_content::ContentType {
+impl From<PyContentType> for ContentType {
     fn from(this: PyContentType) -> Self {
-        this.0
+        match this {
+            PyContentType::Text => ContentType::Text,
+            PyContentType::Html => ContentType::Html,
+        }
     }
 }
 
@@ -94,27 +96,27 @@ impl PyElement {
     }
 
     fn before(&mut self, content: &str, content_type: PyContentType) {
-        self.0.before(content, content_type.0)
+        self.0.before(content, content_type.into())
     }
 
     fn after(&mut self, content: &str, content_type: PyContentType) {
-        self.0.after(content, content_type.0)
+        self.0.after(content, content_type.into())
     }
 
     fn prepend(&mut self, content: &str, content_type: PyContentType) {
-        self.0.prepend(content, content_type.0)
+        self.0.prepend(content, content_type.into())
     }
 
     fn append(&mut self, content: &str, content_type: PyContentType) {
-        self.0.append(content, content_type.0)
+        self.0.append(content, content_type.into())
     }
 
     fn set_inner_content(&mut self, content: &str, content_type: PyContentType) {
-        self.0.set_inner_content(content, content_type.0)
+        self.0.set_inner_content(content, content_type.into())
     }
 
     fn replace(&mut self, content: &str, content_type: PyContentType) {
-        self.0.replace(content, content_type.0)
+        self.0.replace(content, content_type.into())
     }
 
     fn remove(&mut self) {
@@ -129,7 +131,20 @@ impl PyElement {
         self.0.removed()
     }
 
-    fn on_end_tag(&mut self, _handler: Option<PyObject>) -> PyResult<()> {
-        todo!()
+    fn on_end_tag(&mut self, handler: Option<PyObject>) -> PyResult<()> {
+        if let Some(callback) = handler {
+            let handler = move |end: &mut EndTag| {
+                let end: &'static mut EndTag<'static> = unsafe { std::mem::transmute(end) };
+                Python::with_gil(|py| {
+                    let _result = callback.call(py, (PyEndTag::new(end),), None)?;
+                    Ok(())
+                })
+            };
+            self.0
+                .on_end_tag(handler)
+                .map_err(|e| PyEndTagError::new_err(e.to_string()))
+        } else {
+            Ok(())
+        }
     }
 }

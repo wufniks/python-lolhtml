@@ -9,7 +9,13 @@ pub(crate) fn register(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
 }
 
 #[pyclass]
-pub(crate) struct PyEndTag(EndTag<'static>);
+pub(crate) struct PyEndTag(&'static mut EndTag<'static>);
+
+impl PyEndTag {
+    pub fn new(end: &'static mut EndTag<'static>) -> Self {
+        Self(end)
+    }
+}
 
 #[pymethods]
 impl PyEndTag {

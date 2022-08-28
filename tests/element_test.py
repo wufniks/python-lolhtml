@@ -27,6 +27,67 @@ def rewrite_element(html: str, selector: str, handler) -> str:
 def test_empty_tag_name():
     def handler(el):
         with pytest.raises(TagNameError):
-            err = el.set_tag_name("")
+            el.set_tag_name("")
 
     rewrite_element(r"<div>", "div", handler)
+
+
+def test_forbidden_characters_in_tag_name():
+    def handler(el):
+        for ch in [' ', '\n', '\r', '\t', '\x0C', '/', '>']:
+            with pytest.raises(TagNameError):
+                el.set_tag_name(ch)
+
+    rewrite_element(r"<div>", "div", handler)
+
+
+# def test_encoding_ummappable_chars_in_tag_name():
+#     raise NotImplementedError
+
+def test_invalid_first_char_of_tag_name():
+    def handler(el):
+        with pytest.raises(TagNameError):
+            el.set_tag_name("1foo")
+
+    rewrite_element(r"<div>", "div", handler)
+
+############################
+# Tests from doc test
+############################
+
+
+def test_on_end_tag():
+    buffer = ''
+
+    def element_content_handler(el):
+        nonlocal buffer
+        buffer = ''
+
+        print("element content handler")
+
+        def end_tag_handler(end):
+            nonlocal buffer
+            print("name: %s" % end.name())
+            if len(buffer) == 13:
+                end.before("!", ContentType.Text)
+            else:
+                end.remove()
+                name = end.name().upper()
+                end.after(f"</{name}>", ContentType.Html)
+
+        el.on_end_tag(end_tag_handler)
+
+    def text_chunk_handler(text):
+        nonlocal buffer
+
+        print("text chunk handler")
+        buffer += text.as_str()
+
+    result = rewrite_str(
+        r"<span>Short</span><span><b>13</b> characters</span>",
+        [ElementContentHandler(
+            "span", element_content_handler, text_chunk_handler)]
+    )
+
+    # print(result)
+    assert result == r"<span>Short</SPAN><span><b>13</b> characters!</span>"

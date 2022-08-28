@@ -1,5 +1,5 @@
 mod element;
-mod end_tag;
+mod tokens;
 
 use std::borrow::Cow;
 use std::rc::Rc;
@@ -7,13 +7,15 @@ use std::sync::Arc;
 
 use element::PyElement;
 use lol_html::html_content::Element;
+use lol_html::html_content::TextChunk;
 use lol_html::ElementContentHandlers;
 use lol_html::Selector;
 use pyo3::create_exception;
 use pyo3::exceptions::{PyException, PyRuntimeError};
 use pyo3::prelude::*;
+use tokens::text_chunk::PyTextChunk;
 
-create_exception!(module, RewritingError, PyException);
+create_exception!(module, PyRewritingError, PyException);
 
 /// Rewrites given html string with the provided settings.
 #[pyfunction]
@@ -85,16 +87,17 @@ struct PyElementContentHandler {
     pub(crate) selector: String,
     pub(crate) element: Option<Arc<PyObject>>,
     // pub(crate) comments: Option<Py<PyAny>>,
-    // pub(crate) text: Option<Py<PyAny>>,
+    pub(crate) text: Option<Arc<Py<PyAny>>>,
 }
 
 #[pymethods]
 impl PyElementContentHandler {
     #[new]
-    fn __new__(selector: &str, element: Option<PyObject>) -> Self {
+    fn __new__(selector: &str, element: Option<PyObject>, text: Option<PyObject>) -> Self {
         Self {
             selector: selector.to_owned(),
             element: element.map(Arc::new),
+            text: text.map(Arc::new),
         }
     }
 }
@@ -115,6 +118,16 @@ impl PyElementContentHandler {
             })
         }
 
+        if let Some(handler) = self.text.clone() {
+            handlers = handlers.text(move |text: &mut _| {
+                let elem: &'static mut TextChunk = unsafe { std::mem::transmute(text) };
+                Python::with_gil(|py| {
+                    let _result = handler.call(py, (PyTextChunk::new(elem),), None)?;
+                    Ok(())
+                })
+            })
+        }
+
         (Cow::Owned(self.selector.parse().unwrap()), handlers)
     }
 }
@@ -129,8 +142,8 @@ fn lolhtml(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(rewrite_str, m)?)?;
     m.add_class::<RewriteStrSettings>()?;
     m.add_class::<PyElementContentHandler>()?;
-    m.add("RewritingError", py.get_type::<RewritingError>())?;
+    m.add("RewritingError", py.get_type::<PyRewritingError>())?;
     element::register(py, m)?;
-    end_tag::register(py, m)?;
+    tokens::register(py, m)?;
     Ok(())
 }
