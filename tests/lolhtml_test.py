@@ -3,7 +3,7 @@ from lolhtml import rewrite_str, ElementContentHandler
 
 def test_http_to_https():
     def modify_scheme(elem):
-        href = elem.get_attribute("href").replace("http", "https")
+        href = elem.get_attribute("href").replace("http:", "https:")
         elem.set_attribute("href", href)
     result = rewrite_str(
         r'<div><a href="http://example.com"></a></div>',
