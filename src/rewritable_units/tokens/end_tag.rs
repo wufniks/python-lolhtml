@@ -1,7 +1,7 @@
 use lol_html::html_content::EndTag;
 use pyo3::prelude::*;
 
-use crate::element::PyContentType;
+use crate::rewritable_units::PyContentType;
 
 pub(crate) fn register(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyEndTag>()?;

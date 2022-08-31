@@ -1,7 +1,7 @@
 use lol_html::html_content::{TextChunk, TextType};
 use pyo3::prelude::*;
 
-use crate::element::PyContentType;
+use crate::rewritable_units::PyContentType;
 
 pub(super) fn register(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyTextChunk>()?;

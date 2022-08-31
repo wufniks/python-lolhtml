@@ -24,6 +24,7 @@ def rewrite_element(html: str, selector: str, handler) -> str:
             ElementContentHandler(selector, check_if_called),
             ElementContentHandler("inner-remove-me", edit),
         ],
+        [],
     )
 
     assert handler_called, "Handler not called."
@@ -93,6 +94,7 @@ def test_on_end_tag():
     result = rewrite_str(
         r"<span>Short</span><span><b>13</b> characters</span>",
         [ElementContentHandler("span", element_content_handler, text_chunk_handler)],
+        [],
     )
 
     # print(result)

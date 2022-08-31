@@ -1,12 +1,11 @@
-use lol_html::html_content::{ContentType, Element, EndTag};
+use lol_html::html_content::{Element, EndTag};
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 
-use crate::tokens::end_tag::PyEndTag;
+use crate::rewritable_units::{tokens::end_tag::PyEndTag, PyContentType};
 
 pub(crate) fn register(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyElement>()?;
-    m.add_class::<PyContentType>()?;
     m.add("TagNameError", py.get_type::<PyTagNameError>())?;
     m.add("EndTagError", py.get_type::<PyEndTagError>())?;
     Ok(())
@@ -14,22 +13,6 @@ pub(crate) fn register(py: Python<'_>, m: &PyModule) -> PyResult<()> {
 
 pyo3::create_exception!(module, PyTagNameError, PyException);
 pyo3::create_exception!(module, PyEndTagError, PyException);
-
-#[derive(Debug, Clone, Copy)]
-#[pyclass(name = "ContentType")]
-pub(crate) enum PyContentType {
-    Text,
-    Html,
-}
-
-impl From<PyContentType> for ContentType {
-    fn from(this: PyContentType) -> Self {
-        match this {
-            PyContentType::Text => ContentType::Text,
-            PyContentType::Html => ContentType::Html,
-        }
-    }
-}
 
 #[pyclass]
 pub(crate) struct Attribute {
