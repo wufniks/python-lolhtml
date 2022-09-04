@@ -6,8 +6,7 @@ def rewrite_on_end(mocker, html: str, handler: callable) -> str:
 
     rewrite_str(
         html,
-        [],
-        [DocumentContentHandler(mocked_handler)],
+        document_content_handlers=[DocumentContentHandler(mocked_handler)],
     )
 
     mocked_handler.assert_called()
@@ -20,8 +19,7 @@ def test_document_content_handler():
 
     result = rewrite_str(
         r'<div id="foo"><!-- content --></div><img>',
-        [],
-        [DocumentContentHandler(end=on_document_end)],
+        document_content_handlers=[DocumentContentHandler(end=on_document_end)],
     )
 
     assert result == r'<div id="foo"><!-- content --></div><img><bar>&lt;baz&gt;'
@@ -32,12 +30,12 @@ def test_append_to_empty_document():
         end.append("<div></div>", ContentType.Html)
 
     result = rewrite_str(
-        r'',
-        [],
-        [DocumentContentHandler(end=on_document_end)],
+        r"",
+        document_content_handlers=[DocumentContentHandler(end=on_document_end)],
     )
 
-    assert result == r'<div></div>'
+    assert result == r"<div></div>"
+
 
 def test_append_content():
     def on_document_end(end):
@@ -47,21 +45,20 @@ def test_append_content():
         end.append("</span>", ContentType.Html)
 
     result = rewrite_str(
-        r'<div><h1>Hεllo</h1></div>',
-        [],
-        [DocumentContentHandler(end=on_document_end)],
+        r"<div><h1>Hεllo</h1></div>",
+        document_content_handlers=[DocumentContentHandler(end=on_document_end)],
     )
 
-    assert result == r'<div><h1>Hεllo</h1></div><span>world&lt;foo&gt;</span>'
+    assert result == r"<div><h1>Hεllo</h1></div><span>world&lt;foo&gt;</span>"
+
 
 def test_append_content_regression():
     def on_document_end(end):
         end.append("<foo>", ContentType.Text)
 
     result = rewrite_str(
-        r'',
-        [],
-        [DocumentContentHandler(end=on_document_end)],
+        r"",
+        document_content_handlers=[DocumentContentHandler(end=on_document_end)],
     )
 
-    assert result == r'&lt;foo&gt;'
+    assert result == r"&lt;foo&gt;"

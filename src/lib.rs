@@ -12,7 +12,12 @@ use self::settings::{PyDocumentContentHandler, PyElementContentHandler};
 create_exception!(module, PyRewritingError, PyException);
 
 /// Rewrites given html string with the provided settings.
-#[pyfunction]
+#[pyfunction(
+    html,
+    "*",
+    element_content_handlers = "Vec::new()",
+    document_content_handlers = "Vec::new()"
+)]
 fn rewrite_str(
     py: Python<'_>,
     html: &str,

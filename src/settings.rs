@@ -23,7 +23,7 @@ pub(crate) struct PyElementContentHandler {
     pub(crate) selector: String,
     pub(crate) element: Option<Arc<PyObject>>,
     // pub(crate) comments: Option<Py<PyAny>>,
-    pub(crate) text: Option<Arc<Py<PyAny>>>,
+    pub(crate) text: Option<Arc<PyObject>>,
 }
 
 #[pymethods]
