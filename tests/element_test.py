@@ -63,6 +63,112 @@ def test_invalid_first_char_of_tag_name():
 ############################
 
 
+def test_before():
+    def element_handler(elem):
+        elem.before("<bar>", ContentType.Html)
+        elem.before("<qux>", ContentType.Html)
+        elem.before("<quz>", ContentType.Text)
+
+    result = rewrite_str(
+        r'<div id="foo"></div>',
+        element_content_handlers=[ElementContentHandler("#foo", element_handler)],
+    )
+
+    assert result == r'<bar><qux>&lt;quz&gt;<div id="foo"></div>'
+
+
+def test_after():
+    def element_handler(elem):
+        elem.after("<bar>", ContentType.Html)
+        elem.after("<qux>", ContentType.Html)
+        elem.after("<quz>", ContentType.Text)
+
+    result = rewrite_str(
+        r'<div id="foo"></div>',
+        element_content_handlers=[ElementContentHandler("#foo", element_handler)],
+    )
+
+    assert result == r'<div id="foo"></div>&lt;quz&gt;<qux><bar>'
+
+
+def test_prepend():
+    def handler(elem):
+        elem.prepend("<bar>", ContentType.Html)
+        elem.prepend("<qux>", ContentType.Html)
+        elem.prepend("<quz>", ContentType.Text)
+
+    result = rewrite_str(
+        r'<div id="foo"><!-- content --></div><img>',
+        element_content_handlers=[
+            ElementContentHandler("#foo", handler),
+            ElementContentHandler("img", handler),
+        ],
+    )
+
+    assert result == r'<div id="foo">&lt;quz&gt;<qux><bar><!-- content --></div><img>'
+
+
+def test_append():
+    def handler(elem):
+        elem.append("<bar>", ContentType.Html)
+        elem.append("<qux>", ContentType.Html)
+        elem.append("<quz>", ContentType.Text)
+
+    result = rewrite_str(
+        r'<div id="foo"><!-- content --></div><img>',
+        element_content_handlers=[
+            ElementContentHandler("#foo", handler),
+            ElementContentHandler("img", handler),
+        ],
+    )
+
+    assert result == r'<div id="foo"><!-- content --><bar><qux>&lt;quz&gt;</div><img>'
+
+
+def test_set_inner_content():
+    def handler(elem):
+        elem.append("<!-- only one -->", ContentType.Html)
+        elem.set_inner_content("<!-- will -->", ContentType.Html)
+        elem.set_inner_content("<!-- survive -->", ContentType.Html)
+
+    result = rewrite_str(
+        r'<div id="foo"><!-- content --></div><img>',
+        element_content_handlers=[
+            ElementContentHandler("#foo", handler),
+            ElementContentHandler("img", handler),
+        ],
+    )
+
+    assert result == r'<div id="foo"><!-- survive --></div><img>'
+
+
+def test_replace():
+    def handler(elem):
+        elem.replace("<span></span>", ContentType.Html)
+        elem.replace("Hello", ContentType.Text)
+
+    result = rewrite_str(
+        r'<div id="foo"></div>',
+        element_content_handlers=[
+            ElementContentHandler("#foo", handler),
+        ],
+    )
+
+    assert result == r"Hello"
+
+
+def test_remove_and_keep_content():
+
+    result = rewrite_str(
+        r"<div><span><!-- 42 --></span></div>",
+        element_content_handlers=[
+            ElementContentHandler("div", lambda elem: elem.remove_and_keep_content()),
+        ],
+    )
+
+    assert result == r"<span><!-- 42 --></span>"
+
+
 def test_on_end_tag():
     buffer = ""
 
