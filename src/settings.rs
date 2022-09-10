@@ -22,18 +22,24 @@ pub(crate) fn register(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
 pub(crate) struct PyElementContentHandler {
     pub(crate) selector: String,
     pub(crate) element: Option<Arc<PyObject>>,
-    // pub(crate) comments: Option<Py<PyAny>>,
+    pub(crate) comments: Option<Arc<PyObject>>,
     pub(crate) text: Option<Arc<PyObject>>,
 }
 
 #[pymethods]
 impl PyElementContentHandler {
     #[new]
-    #[args(html, "*", element, text)]
-    fn __new__(selector: &str, element: Option<PyObject>, text: Option<PyObject>) -> Self {
+    #[args(html, "*", element, comments, text)]
+    fn __new__(
+        selector: &str,
+        element: Option<PyObject>,
+        comments: Option<PyObject>,
+        text: Option<PyObject>,
+    ) -> Self {
         Self {
             selector: selector.to_owned(),
             element: element.map(Arc::new),
+            comments: comments.map(Arc::new),
             text: text.map(Arc::new),
         }
     }
@@ -50,6 +56,16 @@ impl PyElementContentHandler {
                 let elem: &'static mut Element = unsafe { std::mem::transmute(elem) };
                 Python::with_gil(|py| {
                     let _result = handler.call(py, (PyElement::new(elem),), None)?;
+                    Ok(())
+                })
+            })
+        }
+
+        if let Some(handler) = self.comments.clone() {
+            handlers = handlers.comments(move |comment: &mut _| {
+                let comment: &'static mut Comment = unsafe { std::mem::transmute(comment) };
+                Python::with_gil(|py| {
+                    let _result = handler.call(py, (PyComment::new(comment),), None)?;
                     Ok(())
                 })
             })
