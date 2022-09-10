@@ -17,7 +17,7 @@ def test_http_to_https():
         elem.set_attribute("href", href)
     result = rewrite_str(
         r'<div><a href="http://example.com"></a></div>',
-        [ElementContentHandler("a", modify_scheme)],
+        [ElementContentHandler("a", element=modify_scheme)],
     )
 
     assert result == r'<div><a href="https://example.com"></a></div>'

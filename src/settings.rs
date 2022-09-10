@@ -29,6 +29,7 @@ pub(crate) struct PyElementContentHandler {
 #[pymethods]
 impl PyElementContentHandler {
     #[new]
+    #[args(html, "*", element, text)]
     fn __new__(selector: &str, element: Option<PyObject>, text: Option<PyObject>) -> Self {
         Self {
             selector: selector.to_owned(),

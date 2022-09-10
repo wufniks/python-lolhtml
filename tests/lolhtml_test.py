@@ -8,7 +8,7 @@ def test_http_to_https():
 
     result = rewrite_str(
         r'<div><a href="http://example.com"></a></div>',
-        element_content_handlers=[ElementContentHandler("a", modify_scheme)],
+        element_content_handlers=[ElementContentHandler("a", element=modify_scheme)],
     )
     assert result == r'<div><a href="https://example.com"></a></div>'
 
@@ -17,7 +17,9 @@ def test_lambda():
     result = rewrite_str(
         r'<div><a href="http://example.com"></a></div>',
         element_content_handlers=[
-            ElementContentHandler("a", lambda elem: elem.set_attribute("class", "test"))
+            ElementContentHandler(
+                "a", element=lambda elem: elem.set_attribute("class", "test")
+            )
         ],
     )
     assert result == r'<div><a href="http://example.com" class="test"></a></div>'

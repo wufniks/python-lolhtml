@@ -21,8 +21,8 @@ def rewrite_element(html: str, selector: str, handler) -> str:
     rewrite_str(
         html,
         element_content_handlers=[
-            ElementContentHandler(selector, check_if_called),
-            ElementContentHandler("inner-remove-me", edit),
+            ElementContentHandler(selector, element=check_if_called),
+            ElementContentHandler("inner-remove-me", element=edit),
         ],
     )
 
@@ -71,7 +71,9 @@ def test_before():
 
     result = rewrite_str(
         r'<div id="foo"></div>',
-        element_content_handlers=[ElementContentHandler("#foo", element_handler)],
+        element_content_handlers=[
+            ElementContentHandler("#foo", element=element_handler)
+        ],
     )
 
     assert result == r'<bar><qux>&lt;quz&gt;<div id="foo"></div>'
@@ -85,7 +87,9 @@ def test_after():
 
     result = rewrite_str(
         r'<div id="foo"></div>',
-        element_content_handlers=[ElementContentHandler("#foo", element_handler)],
+        element_content_handlers=[
+            ElementContentHandler("#foo", element=element_handler)
+        ],
     )
 
     assert result == r'<div id="foo"></div>&lt;quz&gt;<qux><bar>'
@@ -100,8 +104,8 @@ def test_prepend():
     result = rewrite_str(
         r'<div id="foo"><!-- content --></div><img>',
         element_content_handlers=[
-            ElementContentHandler("#foo", handler),
-            ElementContentHandler("img", handler),
+            ElementContentHandler("#foo", element=handler),
+            ElementContentHandler("img", element=handler),
         ],
     )
 
@@ -117,8 +121,8 @@ def test_append():
     result = rewrite_str(
         r'<div id="foo"><!-- content --></div><img>',
         element_content_handlers=[
-            ElementContentHandler("#foo", handler),
-            ElementContentHandler("img", handler),
+            ElementContentHandler("#foo", element=handler),
+            ElementContentHandler("img", element=handler),
         ],
     )
 
@@ -134,8 +138,8 @@ def test_set_inner_content():
     result = rewrite_str(
         r'<div id="foo"><!-- content --></div><img>',
         element_content_handlers=[
-            ElementContentHandler("#foo", handler),
-            ElementContentHandler("img", handler),
+            ElementContentHandler("#foo", element=handler),
+            ElementContentHandler("img", element=handler),
         ],
     )
 
@@ -150,7 +154,7 @@ def test_replace():
     result = rewrite_str(
         r'<div id="foo"></div>',
         element_content_handlers=[
-            ElementContentHandler("#foo", handler),
+            ElementContentHandler("#foo", element=handler),
         ],
     )
 
@@ -162,7 +166,9 @@ def test_remove_and_keep_content():
     result = rewrite_str(
         r"<div><span><!-- 42 --></span></div>",
         element_content_handlers=[
-            ElementContentHandler("div", lambda elem: elem.remove_and_keep_content()),
+            ElementContentHandler(
+                "div", element=lambda elem: elem.remove_and_keep_content()
+            ),
         ],
     )
 
@@ -199,7 +205,9 @@ def test_on_end_tag():
     result = rewrite_str(
         r"<span>Short</span><span><b>13</b> characters</span>",
         element_content_handlers=[
-            ElementContentHandler("span", element_content_handler, text_chunk_handler)
+            ElementContentHandler(
+                "span", element=element_content_handler, text=text_chunk_handler
+            )
         ],
     )
 
