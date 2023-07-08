@@ -1,24 +1,21 @@
-# python-lolhtml
+# Welcome!
 
-Python bindings for [cloudflare/lol-html](https://github.com/cloudflare/lol-html/). Bindings are built with [PyO3/pyo3](https://github.com/PyO3/pyo3). This is *experimental*.
+## Welcome to MyAPI
 
-## Installation
+Welcome to MyAPI! Here you'll find all the documentation you need to get up and running with the MyAPI API.
 
-``` shell
-maturin develop
-```
+## Want to jump right in?
 
-## Example
+Feeling like an eager beaver? Jump in to the quick start docs and get making your first request:
 
-``` python
-def test_http_to_https():
-    def modify_scheme(elem):
-        href = elem.get_attribute("href").replace("http:", "https:")
-        elem.set_attribute("href", href)
-    result = rewrite_str(
-        r'<div><a href="http://example.com"></a></div>',
-        [ElementContentHandler("a", element=modify_scheme)],
-    )
+{% content-ref url="quick-start.md" %}
+[quick-start.md](quick-start.md)
+{% endcontent-ref %}
 
-    assert result == r'<div><a href="https://example.com"></a></div>'
-```
+## Want to deep dive?
+
+Dive a little deeper and start exploring our API reference to get an idea of everything that's possible with the API:
+
+{% content-ref url="reference/api-reference/" %}
+[api-reference](reference/api-reference/)
+{% endcontent-ref %}
